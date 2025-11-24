@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/brent-verlinden/milestone2
+    repoURL: https://github.com/iDqrks/milestone2-kubernetes.git
     targetRevision: main
     path: kubernetes/base
   destination:
@@ -16,3 +16,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

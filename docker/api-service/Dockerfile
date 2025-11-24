@@ -14,8 +14,6 @@ COPY main.py .
 COPY startup.sh .
 RUN chmod +x startup.sh
 
-# Copy web frontend HTML to static directory
-COPY ../web-frontend/index.html ./static/
 
 EXPOSE 8000
 
