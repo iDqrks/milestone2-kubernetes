@@ -1,0 +1,33 @@
+﻿apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bv-ingress
+  namespace: brent-verlinden
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/issuer: "selfsigned-issuer"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - brent-verlinden.local
+    secretName: bv-tls-secret
+  rules:
+  - host: brent-verlinden.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bv-web
+            port:
+              number: 80
+      - path: /api/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: bv-api
+            port:
+              number: 8000

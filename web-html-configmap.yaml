@@ -6,60 +6,107 @@ metadata:
 data:
   index.html: |
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Milestone 2 - Brent Verlinden</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
-            .healthy { background-color: #d4edda; color: #155724; }
-            .error { background-color: #f8d7da; color: #721c24; }
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                text-align: center;
+                padding: 40px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 15px;
+                backdrop-filter: blur(10px);
+            }
+            h1 {
+                font-size: 2.5em;
+                margin-bottom: 20px;
+            }
+            button {
+                background: #4CAF50;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 16px;
+                margin-top: 20px;
+            }
+            button:hover {
+                background: #45a049;
+            }
+            .info {
+                margin: 10px 0;
+                padding: 10px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 5px;
+            }
+            .status-healthy { color: #90EE90; }
+            .status-error { color: #FF6B6B; }
         </style>
     </head>
     <body>
-        <h1>Brent Verlinden has reached milestone 2!</h1>
-        <div id="containerInfo">
-            <p>Container ID: <span id="containerId">Loading...</span></p>
+        <div class="container">
+            <h1><span id="user">Brent Verlinden</span> has reached milestone 2!</h1>
+            <div class="info">
+                <strong>Container ID:</strong> <span id="containerId">Loading...</span>
+            </div>
+            <div class="info">
+                <strong>Status:</strong> <span id="status" class="status-healthy">Checking API...</span>
+            </div>
+            <button onclick="refreshData()">Refresh Data</button>
         </div>
-        <div id="status" class="status">Status:  Loading...</div>
-        <button onclick="refreshData()">Refresh Data</button>
 
         <script>
+            // Gebruik relative paths die via de ingress gaan
+            const API_BASE = '/api';
+
             async function fetchData() {
                 try {
-                    // Fetch user data from relative path (will be routed by ingress)
-                    const userResponse = await fetch('/api/user');
+                    // Fetch user data
+                    const userResponse = await fetch(API_BASE + '/user');
+                    if (!userResponse.ok) throw new Error('User API failed');
                     const userData = await userResponse.json();
                     
                     // Fetch container data
-                    const containerResponse = await fetch('/api/container');
+                    const containerResponse = await fetch(API_BASE + '/container');
+                    if (!containerResponse.ok) throw new Error('Container API failed');
                     const containerData = await containerResponse.json();
                     
                     // Update UI
+                    document.getElementById('user').textContent = userData.name;
                     document.getElementById('containerId').textContent = containerData.container_id || 'Unknown';
-                    document.getElementById('status').textContent = 'Status:  API Connected';
-                    document.getElementById('status').className = 'status healthy';
-                    
-                    console.log('User:', userData);
-                    console.log('Container:', containerData);
+                    document.getElementById('status').textContent = ' API Connected via HTTPS';
+                    document.getElementById('status').className = 'status-healthy';
                     
                 } catch (error) {
                     console.error('Error fetching data:', error);
-                    document.getElementById('status').textContent = 'Status:  API Connection Failed';
-                    document.getElementById('status').className = 'status error';
+                    document.getElementById('status').textContent = ' API Connection Failed';
+                    document.getElementById('status').className = 'status-error';
+                    document.getElementById('containerId').textContent = 'Unknown';
                 }
             }
-            
+
             function refreshData() {
-                document.getElementById('status').textContent = 'Status:  Loading...';
-                document.getElementById('status').className = 'status';
+                document.getElementById('status').textContent = ' Refreshing...';
+                document.getElementById('status').className = '';
                 fetchData();
             }
-            
-            // Load data on page load
+
+            // Initial load
             fetchData();
-            
-            // Refresh every 10 seconds
+
+            // Auto-refresh every 10 seconds
             setInterval(fetchData, 10000);
         </script>
     </body>

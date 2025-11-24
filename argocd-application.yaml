@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-username/your-repo.git
+    repoURL: https://github.com/iDqrks/milestone2-kubernetes.git
     path: kubernetes
-    targetRevision: HEAD
+    targetRevision: main
   destination:
     server: https://kubernetes.default.svc
     namespace: brent-verlinden
