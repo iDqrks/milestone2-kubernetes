@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bv-api-metrics
+  namespace: brent-verlinden
+data:
+  metrics-endpoint: "8000"

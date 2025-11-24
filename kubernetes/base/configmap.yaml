@@ -1,0 +1,156 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bv-config
+  namespace: brent-verlinden
+data:
+  DB_NAME: "brent_db"
+  DB_USER: "brent_user"
+  DB_HOST: "bv-mariadb"
+  DB_PORT: "3306"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bv-web-config
+  namespace: brent-verlinden
+data:
+  lighttpd.conf: |
+    server.document-root = "/var/www/localhost/htdocs"
+    server.port = 80
+    server.username = "lighttpd"
+    server.groupname = "lighttpd"
+    dir-listing.activate = "enable"
+    index-file.names = ( "index.html" )
+    mimetype.assign = (
+      ".html" => "text/html",
+      ".js" => "application/javascript", 
+      ".css" => "text/css"
+    )
+    static-file.exclude-extensions = ( ".php", ".pl", ".fcgi" )
+    accesslog.filename = "/var/log/lighttpd/access.log"
+    server.errorlog = "/var/log/lighttpd/error.log"
+    server.max-connections = 1024
+    server.max-fds = 2048
+    server.follow-symlink = "enable"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bv-web-html
+  namespace: brent-verlinden
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Milestone 2</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+          }
+          h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+          }
+          button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+          }
+          button:hover {
+            background: #45a049;
+          }
+          .info {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1><span id="user">Loading...</span> has reached milestone 2!</h1>
+          <div class="info">
+            <strong>Container ID:</strong> <span id="containerId">Loading...</span>
+          </div>
+          <div class="info">
+            <strong>Status:</strong> <span id="status">Checking API...</span>
+          </div>
+          <button onclick="refreshData()">Refresh Data</button>
+        </div>
+
+        <script>
+          // In Kubernetes gebruiken we de service naam via de ingress
+          const API_BASE = window.location.hostname === 'localhost' && window.location.port === '8080' 
+            ? 'http://localhost:8000' 
+            : '/api';
+
+          // fetch user from API
+          function fetchUser() {
+            fetch(`${API_BASE}/user`)
+              .then((res) => res.json())
+              .then((data) => {
+                // get user name
+                const user = data.name;
+                // display user name
+                document.getElementById("user").innerText = user;
+                document.getElementById("status").innerText = "✅ API Connected";
+              })
+              .catch((error) => {
+                console.error("Error fetching user:", error);
+                document.getElementById("user").innerText = "Brent Verlinden";
+                document.getElementById("status").innerText = "❌ API Connection Failed";
+              });
+          }
+
+          // fetch container info from API
+          function fetchContainer() {
+            fetch(`${API_BASE}/container`)
+              .then((res) => res.json())
+              .then((data) => {
+                // display container ID
+                document.getElementById("containerId").innerText = data.container_id;
+              })
+              .catch((error) => {
+                console.error("Error fetching container:", error);
+                document.getElementById("containerId").innerText = "Unknown";
+              });
+          }
+
+          function refreshData() {
+            document.getElementById("status").innerText = "Refreshing...";
+            fetchUser();
+            fetchContainer();
+          }
+
+          // Initial load
+          fetchUser();
+          fetchContainer();
+
+          // Auto-refresh every 30 seconds
+          setInterval(refreshData, 30000);
+        </script>
+      </body>
+    </html>

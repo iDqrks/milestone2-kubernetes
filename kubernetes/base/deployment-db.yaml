@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bv-mariadb
+  namespace: brent-verlinden
+  labels:
+    app: bv-mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bv-mariadb
+  template:
+    metadata:
+      labels:
+        app: bv-mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.11
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: bv-secrets
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: bv-config
+              key: DB_NAME
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: bv-config
+              key: DB_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: bv-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+            - -uroot
+            - -proot_password
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+            - -uroot
+            - -proot_password
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: init-script
+        configMap:
+          name: bv-db-init
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bv-db-init
+  namespace: brent-verlinden
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS brent_db;
+    CREATE USER IF NOT EXISTS 'brent_user'@'%' IDENTIFIED BY 'brent_password';
+    GRANT ALL PRIVILEGES ON brent_db.* TO 'brent_user'@'%';
+    FLUSH PRIVILEGES;
+    USE brent_db;
+    CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL DEFAULT 'Brent Verlinden',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    INSERT IGNORE INTO users (id, name) VALUES (1, 'Brent Verlinden');

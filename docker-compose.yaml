@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  bv-mariadb:
+    build: ./docker/database
+    container_name: bv-mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: "root_password"
+      MYSQL_DATABASE: "brent_db"
+      MYSQL_USER: "brent_user"
+      MYSQL_PASSWORD: "brent_password"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - bv-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  bv-api:
+    build: ./docker/api-service
+    container_name: bv-api
+    environment:
+      DB_HOST: "bv-mariadb"
+      DB_USER: "brent_user"
+      DB_PASSWORD: "brent_password"
+      DB_NAME: "brent_db"
+      DB_PORT: "3306"
+    ports:
+      - "8000:8000"
+    depends_on:
+      bv-mariadb:
+        condition: service_healthy
+    networks:
+      - bv-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  bv-web:
+    build: ./docker/web-frontend
+    container_name: bv-web
+    ports:
+      - "8082:80"
+    depends_on:
+      bv-api:
+        condition: service_healthy
+    networks:
+      - bv-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mariadb_data:
+
+networks:
+  bv-network:
+    driver: bridge

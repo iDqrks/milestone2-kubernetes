@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Milestone 2</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 40px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+      }
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+      }
+      button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      .info {
+        margin: 10px 0;
+        padding: 10px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1><span id="user">Loading...</span> has reached milestone 2!</h1>
+      <div class="info">
+        <strong>Container ID:</strong> <span id="containerId">Loading...</span>
+      </div>
+      <div class="info">
+        <strong>Status:</strong> <span id="status">Checking API...</span>
+      </div>
+      <button onclick="refreshData()">Refresh Data</button>
+    </div>
+
+    <script>
+      // Gebruik localhost API nu met CORS
+      const API_BASE = 'http://localhost:8000';
+
+      function fetchUser() {
+        fetch(`${API_BASE}/user`)
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+          })
+          .then((data) => {
+            document.getElementById("user").innerText = data.name;
+            document.getElementById("status").innerText = "✅ API Connected";
+          })
+          .catch((error) => {
+            console.error("Error fetching user:", error);
+            document.getElementById("user").innerText = "Brent Verlinden";
+            document.getElementById("status").innerText = "❌ API Connection Failed";
+          });
+      }
+
+      function fetchContainer() {
+        fetch(`${API_BASE}/container`)
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            return res.json();
+          })
+          .then((data) => {
+            document.getElementById("containerId").innerText = data.container_id;
+          })
+          .catch((error) => {
+            console.error("Error fetching container:", error);
+            document.getElementById("containerId").innerText = "Unknown";
+          });
+      }
+
+      function refreshData() {
+        document.getElementById("status").innerText = "Refreshing...";
+        fetchUser();
+        fetchContainer();
+      }
+
+      // Initial load
+      refreshData();
+
+      // Auto-refresh every 30 seconds
+      setInterval(refreshData, 30000);
+    </script>
+  </body>
+</html>

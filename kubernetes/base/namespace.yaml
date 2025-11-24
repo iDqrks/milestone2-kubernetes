@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: brent-verlinden
+  labels:
+    name: brent-verlinden
+    project: milestone2

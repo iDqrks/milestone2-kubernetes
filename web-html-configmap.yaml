@@ -1,0 +1,66 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bv-web-html
+  namespace: brent-verlinden
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Milestone 2 - Brent Verlinden</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+            .healthy { background-color: #d4edda; color: #155724; }
+            .error { background-color: #f8d7da; color: #721c24; }
+        </style>
+    </head>
+    <body>
+        <h1>Brent Verlinden has reached milestone 2!</h1>
+        <div id="containerInfo">
+            <p>Container ID: <span id="containerId">Loading...</span></p>
+        </div>
+        <div id="status" class="status">Status:  Loading...</div>
+        <button onclick="refreshData()">Refresh Data</button>
+
+        <script>
+            async function fetchData() {
+                try {
+                    // Fetch user data from relative path (will be routed by ingress)
+                    const userResponse = await fetch('/api/user');
+                    const userData = await userResponse.json();
+                    
+                    // Fetch container data
+                    const containerResponse = await fetch('/api/container');
+                    const containerData = await containerResponse.json();
+                    
+                    // Update UI
+                    document.getElementById('containerId').textContent = containerData.container_id || 'Unknown';
+                    document.getElementById('status').textContent = 'Status:  API Connected';
+                    document.getElementById('status').className = 'status healthy';
+                    
+                    console.log('User:', userData);
+                    console.log('Container:', containerData);
+                    
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('status').textContent = 'Status:  API Connection Failed';
+                    document.getElementById('status').className = 'status error';
+                }
+            }
+            
+            function refreshData() {
+                document.getElementById('status').textContent = 'Status:  Loading...';
+                document.getElementById('status').className = 'status';
+                fetchData();
+            }
+            
+            // Load data on page load
+            fetchData();
+            
+            // Refresh every 10 seconds
+            setInterval(fetchData, 10000);
+        </script>
+    </body>
+    </html>
